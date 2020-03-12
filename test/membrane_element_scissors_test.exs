@@ -3,7 +3,7 @@ defmodule Membrane.Element.ScissorsTest do
   use ExUnit.Case
   alias Membrane.Element.Scissors
 
-  test "cuts buffers properly by time" do
+  test "cuts the stream properly by given time" do
     buffers =
       process_buffers(
         0..20,
@@ -16,7 +16,7 @@ defmodule Membrane.Element.ScissorsTest do
     assert buffers == [2, 3, 6, 7, 8, 9, 12, 13, 14, 16, 17]
   end
 
-  test "cuts buffers properly by buffer count" do
+  test "cuts the stream properly by given buffer count" do
     buffers =
       process_buffers(
         0..20,
@@ -29,11 +29,11 @@ defmodule Membrane.Element.ScissorsTest do
     assert buffers == [2, 6, 7, 12, 14, 15]
   end
 
-  defp process_buffers(buffers, cuts, duration, filter, unit) do
+  defp process_buffers(buffers, intervals, duration, filter, unit) do
     {:ok, state} =
       %Scissors{
         buffer_duration: fn _buffer, _caps -> duration end,
-        cuts: cuts,
+        intervals: intervals,
         duration_unit: unit,
         filter: filter
       }
