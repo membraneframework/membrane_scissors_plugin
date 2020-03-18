@@ -33,7 +33,7 @@ defmodule Membrane.Element.Scissors do
                 default: :time,
                 description: """
                 Unit of the duration of each interval in the `intervals` option.
-                If `buffers` is passed, given amount of buffers is preserved,
+                If `:buffers` is passed, given amount of buffers is preserved,
                 unless the next interval starts earlier. In that case, the stream
                 is cut according to the subsequent intervals.
                 """
