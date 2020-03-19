@@ -59,5 +59,6 @@ defmodule Membrane.Element.ScissorsTest do
     end)
 
     assert_end_of_stream(pipeline, :sink)
+    refute_sink_buffer(pipeline, :sink, _, 0)
   end
 end
