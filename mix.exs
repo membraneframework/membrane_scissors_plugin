@@ -51,9 +51,9 @@ defmodule Membrane.Element.Scissors.MixProject do
   defp deps do
     [
       {:membrane_core, github: "membraneframework/membrane-core"},
-      {:stream_split, github: "mat-hek/stream_split"},
+      {:stream_split, "~> 0.1.3"},
       {:ex_doc, "~> 0.21", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false}
     ]
   end
 end

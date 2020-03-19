@@ -4,50 +4,55 @@ defmodule Membrane.Element.ScissorsTest do
   alias Membrane.Element.Scissors
 
   test "cuts the stream properly by given time" do
-    buffers =
-      process_buffers(
-        0..20,
-        [{1, 1}, {3, 2}, {6, 3}],
-        Ratio.new(1, 2),
-        fn buffer, _caps -> buffer != 15 end,
-        :time
-      )
-
-    assert buffers == [2, 3, 6, 7, 8, 9, 12, 13, 14, 16, 17]
+    integration_test(
+      0..20,
+      [2, 3, 6, 7, 8, 9, 12, 13, 14, 16, 17],
+      [{1, 1}, {3, 2}, {6, 3}],
+      Ratio.new(1, 2),
+      fn buffer, _caps -> buffer.payload != 15 end,
+      :time
+    )
   end
 
   test "cuts the stream properly by given buffer count" do
-    buffers =
-      process_buffers(
-        0..20,
-        [{1, 1}, {3, 2}, {6, 3}],
-        Ratio.new(1, 2),
-        fn buffer, _caps -> buffer != 13 end,
-        :buffers
-      )
-
-    assert buffers == [2, 6, 7, 12, 14, 15]
+    integration_test(
+      0..20,
+      [2, 6, 7, 12, 14, 15],
+      [{1, 1}, {3, 2}, {6, 3}],
+      Ratio.new(1, 2),
+      fn buffer, _caps -> buffer.payload != 13 end,
+      :buffers
+    )
   end
 
-  defp process_buffers(buffers, intervals, duration, filter, unit) do
-    {:ok, state} =
-      %Scissors{
+  defp integration_test(in_buffers, out_buffers, intervals, duration, filter, unit) do
+    import Membrane.ParentSpec
+    import Membrane.Testing.Assertions
+    alias Membrane.Testing
+
+    elements = [
+      source: %Testing.Source{
+        output: in_buffers
+      },
+      scissors: %Scissors{
         buffer_duration: fn _buffer, _caps -> duration end,
         intervals: intervals,
-        duration_unit: unit,
+        interval_duration_unit: unit,
         filter: filter
-      }
-      |> Scissors.handle_init()
+      },
+      sink: Testing.Sink
+    ]
 
-    ctx = %{pads: %{input: %{caps: nil}}}
+    links = [link(:source) |> to(:scissors) |> to(:sink)]
 
-    buffers
-    |> Enum.flat_map_reduce(state, fn buffer, state ->
-      {{:ok, actions}, state} = Scissors.handle_process(:input, buffer, ctx, state)
-      {actions, state}
-    end)
-    ~> ({result, _state} -> result)
-    |> Bunch.KVEnum.filter_by_keys(&(&1 == :buffer))
-    |> Enum.map(fn {:buffer, {:output, buffer}} -> buffer end)
+    {:ok, pipeline} =
+      Testing.Pipeline.start_link(%Testing.Pipeline.Options{
+        elements: elements,
+        links: links
+      })
+
+    Membrane.Pipeline.play(pipeline)
+    Enum.each(out_buffers, &assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: ^&1}))
+    refute_sink_buffer(pipeline, :sink, _)
   end
 end

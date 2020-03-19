@@ -12,11 +12,11 @@ defmodule Membrane.Element.Scissors do
 
   def_options intervals: [
                 type: :list,
-                spec: [{Time.t(), duration :: Time.t() | integer}] | Enumerable.t(),
+                spec: [{Time.t(), duration :: Time.t() | integer}] | Enumerable.t() | Stream.t(),
                 description: """
                 Enumerable containing `{start_time, duration}` tuples specifying
                 parts of the stream that should be preserved. All other parts are
-                cut off. Duration unit should conform to the `duration_unit`
+                cut off. Duration unit should conform to the `interval_duration_unit`
                 option. Note that infinite streams are also supported.
                 """
               ],
@@ -27,7 +27,7 @@ defmodule Membrane.Element.Scissors do
                 Function returning the duration of given buffer in Membrane Time units.
                 """
               ],
-              duration_unit: [
+              interval_duration_unit: [
                 type: :atom,
                 spec: :time | :buffers,
                 default: :time,
@@ -96,35 +96,35 @@ defmodule Membrane.Element.Scissors do
       next_intervals: next_intervals,
       time: time,
       buffers_count: buf_cnt,
-      duration_unit: duration_unit
+      interval_duration_unit: interval_duration_unit
     } = state
 
     cond do
       next_intervals == [] ->
         {true, state}
 
-      time_for_another_cut?(next_intervals, time) ->
-        state |> next_cut() |> cut()
+      time_for_next_cut?(next_intervals, time) ->
+        state |> proceed_to_next_cut() |> cut()
 
-      wait_for_current_cut?(next_intervals, time) ->
+      waiting_for_cut_start?(next_intervals, time) ->
         {true, state}
 
-      within_current_cut?(next_intervals, time, buf_cnt, duration_unit) ->
-        case duration_unit do
+      within_current_cut?(next_intervals, time, buf_cnt, interval_duration_unit) ->
+        case interval_duration_unit do
           :time -> {false, state}
           :buffers -> {false, %{state | buffers_count: buf_cnt + 1}}
         end
 
       true ->
-        state |> next_cut() |> cut()
+        state |> proceed_to_next_cut() |> cut()
     end
   end
 
-  defp time_for_another_cut?([_cut0, {from, _size} | _], time), do: Ratio.gte?(time, from)
-  defp time_for_another_cut?(_next_intervals, _time), do: false
+  defp time_for_next_cut?([_cut0, {from, _size} | _], time), do: Ratio.gte?(time, from)
+  defp time_for_next_cut?(_next_intervals, _time), do: false
 
-  defp wait_for_current_cut?([{from, _size} | _], time), do: Ratio.lt?(time, from)
-  defp wait_for_current_cut?(_next_intervals, _time), do: false
+  defp waiting_for_cut_start?([{from, _size} | _], time), do: Ratio.lt?(time, from)
+  defp waiting_for_cut_start?(_next_intervals, _time), do: false
 
   defp within_current_cut?([{from, duration} | _], time, _buf_cnt, :time) do
     use Ratio
@@ -137,7 +137,7 @@ defmodule Membrane.Element.Scissors do
 
   defp within_current_cut?(_next_intervals, _time, _buf_cnt, _unit), do: false
 
-  defp next_cut(%{next_intervals: next_intervals, intervals: intervals} = state) do
+  defp proceed_to_next_cut(%{next_intervals: next_intervals, intervals: intervals} = state) do
     {new_next_intervals, intervals} = StreamSplit.take_and_drop(intervals, 1)
 
     %{
