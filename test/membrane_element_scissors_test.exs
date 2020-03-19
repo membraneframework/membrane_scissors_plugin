@@ -25,14 +25,14 @@ defmodule Membrane.Element.ScissorsTest do
     )
   end
 
-  defp integration_test(in_buffers, out_buffers, intervals, duration, filter, unit) do
+  defp integration_test(in_payloads, out_payloads, intervals, duration, filter, unit) do
     import Membrane.ParentSpec
     import Membrane.Testing.Assertions
     alias Membrane.Testing
 
     elements = [
       source: %Testing.Source{
-        output: in_buffers
+        output: in_payloads
       },
       scissors: %Scissors{
         buffer_duration: fn _buffer, _caps -> duration end,
@@ -53,9 +53,9 @@ defmodule Membrane.Element.ScissorsTest do
 
     Membrane.Pipeline.play(pipeline)
 
-    Enum.each(out_buffers, fn expected ->
+    Enum.each(out_payloads, fn expected_payload ->
       assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: payload})
-      assert payload == expected
+      assert payload == expected_payload
     end)
 
     assert_end_of_stream(pipeline, :sink)
