@@ -52,7 +52,12 @@ defmodule Membrane.Element.ScissorsTest do
       })
 
     Membrane.Pipeline.play(pipeline)
-    Enum.each(out_buffers, &assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: ^&1}))
-    refute_sink_buffer(pipeline, :sink, _)
+
+    Enum.each(out_buffers, fn expected ->
+      assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: payload})
+      assert payload == expected
+    end)
+
+    assert_end_of_stream(pipeline, :sink)
   end
 end
