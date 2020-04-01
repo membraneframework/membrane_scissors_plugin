@@ -1,6 +1,6 @@
 defmodule Membrane.Element.Scissors do
   @moduledoc """
-  Element for cutting off parts of the stream.
+  Element for cutting the stream.
   """
 
   use Membrane.Filter
@@ -79,65 +79,65 @@ defmodule Membrane.Element.Scissors do
     use Ratio
     %{caps: caps} = ctx.pads.input
 
-    {cut?, state} =
+    {forward?, state} =
       if state.filter.(buffer, caps) do
-        cut(state)
+        forward?(state)
       else
-        {true, state}
+        {false, state}
       end
 
-    actions = if cut?, do: [redemand: :output], else: [buffer: {:output, buffer}]
+    actions = if forward?, do: [buffer: {:output, buffer}], else: [redemand: :output]
     state = Map.update!(state, :time, &(&1 + state.buffer_duration.(buffer, caps)))
     {{:ok, actions}, state}
   end
 
-  defp cut(state) do
+  defp forward?(state) do
     %{
       next_intervals: next_intervals,
       time: time,
-      buffers_count: buf_cnt,
+      buffers_count: buffers_count,
       interval_duration_unit: interval_duration_unit
     } = state
 
     cond do
       next_intervals == [] ->
-        {true, state}
+        {false, state}
 
-      time_for_next_cut?(next_intervals, time) ->
-        state |> proceed_to_next_cut() |> cut()
+      time_for_next_interval?(next_intervals, time) ->
+        state |> proceed_to_next_interval() |> forward?()
 
-      waiting_for_cut_start?(next_intervals, time) ->
-        {true, state}
+      waiting_for_interval_start?(next_intervals, time) ->
+        {false, state}
 
-      within_current_cut?(next_intervals, time, buf_cnt, interval_duration_unit) ->
+      within_current_interval?(next_intervals, time, buffers_count, interval_duration_unit) ->
         case interval_duration_unit do
-          :time -> {false, state}
-          :buffers -> {false, %{state | buffers_count: buf_cnt + 1}}
+          :time -> {true, state}
+          :buffers -> {true, %{state | buffers_count: buffers_count + 1}}
         end
 
       true ->
-        state |> proceed_to_next_cut() |> cut()
+        state |> proceed_to_next_interval() |> forward?()
     end
   end
 
-  defp time_for_next_cut?([_cut0, {from, _size} | _], time), do: Ratio.gte?(time, from)
-  defp time_for_next_cut?(_next_intervals, _time), do: false
+  defp time_for_next_interval?([_interval0, {from, _size} | _], time), do: Ratio.gte?(time, from)
+  defp time_for_next_interval?(_next_intervals, _time), do: false
 
-  defp waiting_for_cut_start?([{from, _size} | _], time), do: Ratio.lt?(time, from)
-  defp waiting_for_cut_start?(_next_intervals, _time), do: false
+  defp waiting_for_interval_start?([{from, _size} | _], time), do: Ratio.lt?(time, from)
+  defp waiting_for_interval_start?(_next_intervals, _time), do: false
 
-  defp within_current_cut?([{from, duration} | _], time, _buf_cnt, :time) do
+  defp within_current_interval?([{from, interval_duration} | _], time, _buffers_count, :time) do
     use Ratio
-    Ratio.lt?(time, from + duration)
+    Ratio.lt?(time, from + interval_duration)
   end
 
-  defp within_current_cut?([{_from, cut_cnt} | _], _time, buf_cnt, :buffers) do
-    buf_cnt < cut_cnt
+  defp within_current_interval?([{_from, interval_size} | _], _time, buffers_count, :buffers) do
+    buffers_count < interval_size
   end
 
-  defp within_current_cut?(_next_intervals, _time, _buf_cnt, _unit), do: false
+  defp within_current_interval?(_next_intervals, _time, _buf_cnt, _unit), do: false
 
-  defp proceed_to_next_cut(%{next_intervals: next_intervals, intervals: intervals} = state) do
+  defp proceed_to_next_interval(%{next_intervals: next_intervals, intervals: intervals} = state) do
     {new_next_intervals, intervals} = StreamSplit.take_and_drop(intervals, 1)
 
     %{
