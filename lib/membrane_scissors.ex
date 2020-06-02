@@ -1,4 +1,4 @@
-defmodule Membrane.Element.Scissors do
+defmodule Membrane.Scissors do
   @moduledoc """
   Element for cutting the stream.
   """
