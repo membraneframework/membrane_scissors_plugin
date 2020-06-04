@@ -1,18 +1,18 @@
-defmodule Membrane.Element.Scissors.MixProject do
+defmodule Membrane.Scissors.Plugin.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @github_url "https://github.com/membraneframework/membrane-element-scissors"
+  @github_url "https://github.com/membraneframework/membrane_scissors_plugin"
 
   def project do
     [
-      app: :membrane_element_scissors,
+      app: :membrane_scissors_plugin,
       version: @version,
       elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
-      description: "Membrane Multimedia Framework (Scissors Element)",
+      description: "Scissors plugin for Membrane Framework",
       package: package(),
-      name: "Membrane Element: Scissors",
+      name: "Membrane Scissors plugin",
       source_url: @github_url,
       docs: docs(),
       deps: deps()
@@ -33,7 +33,7 @@ defmodule Membrane.Element.Scissors.MixProject do
       main: "readme",
       extras: ["README.md"],
       source_ref: "v#{@version}",
-      nest_modules_by_prefix: [Membrane.Element.Scissors]
+      nest_modules_by_prefix: [Membrane.Scissors]
     ]
   end
 

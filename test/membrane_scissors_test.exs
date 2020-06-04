@@ -1,7 +1,7 @@
-defmodule Membrane.Element.ScissorsTest do
+defmodule Membrane.ScissorsTest do
   use Bunch
   use ExUnit.Case
-  alias Membrane.Element.Scissors
+  alias Membrane.Scissors
 
   test "cuts the stream properly by given time" do
     integration_test(
