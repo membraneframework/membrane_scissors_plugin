@@ -1,4 +1,4 @@
-# Membrane Multimedia Framework: Scissors Element
+# Membrane Scissors plugin
 
 [![Hex.pm](https://img.shields.io/hexpm/v/membrane_scissors_plugin.svg)](https://hex.pm/packages/membrane_scissors_plugin)
 [![API Docs](https://img.shields.io/badge/api-docs-yellow.svg?style=flat)](https://hexdocs.pm/membrane_scissors_plugin/)
