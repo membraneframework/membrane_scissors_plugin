@@ -1,7 +1,7 @@
 defmodule Membrane.Scissors.Plugin.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @github_url "https://github.com/membraneframework/membrane_scissors_plugin"
 
   def project do
@@ -50,7 +50,7 @@ defmodule Membrane.Scissors.Plugin.MixProject do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.5.0"},
+      {:membrane_core, "~> 0.6.0"},
       {:stream_split, "~> 0.1.3"},
       {:ex_doc, "~> 0.21", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false}
