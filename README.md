@@ -25,7 +25,7 @@ Note that particular codecs may allow the stream to be cut at specific points on
 Add the following line to your `deps` in `mix.exs`. Run `mix deps.get`.
 
 ```elixir
-{:membrane_scissors_plugin, "~> 0.1.0"}
+{:membrane_scissors_plugin, "~> 0.4.0"}
 ```
 
 ## Copyright and License
