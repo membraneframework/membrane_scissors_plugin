@@ -46,10 +46,10 @@ defmodule Membrane.ScissorsTest do
     links = [link(:source) |> to(:scissors) |> to(:sink)]
 
     {:ok, pipeline} =
-      Testing.Pipeline.start_link(%Testing.Pipeline.Options{
-        elements: elements,
+      Testing.Pipeline.start_link(
+        children: elements,
         links: links
-      })
+      )
 
     Membrane.Pipeline.play(pipeline)
 
