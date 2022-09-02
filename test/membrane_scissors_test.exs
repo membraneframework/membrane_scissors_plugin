@@ -51,8 +51,6 @@ defmodule Membrane.ScissorsTest do
         links: links
       )
 
-    Membrane.Pipeline.play(pipeline)
-
     Enum.each(out_payloads, fn expected_payload ->
       assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: payload})
       assert payload == expected_payload
