@@ -12,7 +12,7 @@ defmodule Membrane.Scissors do
 
   def_options intervals: [
                 type: :list,
-                spec: [{Time.t(), duration :: Time.t() | integer}] | Enumerable.t() | Stream.t(),
+                spec: [{Time.t(), duration :: Time.t() | integer}] | Enumerable.t(),
                 description: """
                 Enumerable containing `{start_time, duration}` tuples specifying
                 parts of the stream that should be preserved. All other parts are
@@ -49,6 +49,7 @@ defmodule Membrane.Scissors do
               ]
 
   @doc false
+  @spec always_pass_filter(Buffer.t(), (any -> boolean)) :: true
   def always_pass_filter(_buffer, _caps), do: true
 
   @impl true
