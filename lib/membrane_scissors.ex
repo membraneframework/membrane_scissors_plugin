@@ -7,8 +7,8 @@ defmodule Membrane.Scissors do
   alias Membrane.Buffer
   alias Membrane.Time
 
-  def_input_pad :input, caps: :any, demand_unit: :buffers
-  def_output_pad :output, caps: :any
+  def_input_pad :input, accepted_format: _any, demand_unit: :buffers
+  def_output_pad :output, accepted_format: _any
 
   def_options intervals: [
                 type: :list,
@@ -22,7 +22,7 @@ defmodule Membrane.Scissors do
               ],
               buffer_duration: [
                 type: :function,
-                spec: (Buffer.t(), caps :: any -> Time.t()),
+                spec: (Buffer.t(), accepted_format :: any -> Time.t()),
                 description: """
                 Function returning the duration of given buffer in Membrane Time units.
                 """
@@ -40,7 +40,7 @@ defmodule Membrane.Scissors do
               ],
               filter: [
                 type: :function,
-                spec: (Buffer.t(), caps :: any -> boolean),
+                spec: (Buffer.t(), accepted_format :: any -> boolean),
                 default: &__MODULE__.always_pass_filter/2,
                 description: """
                 Function for filtering buffers before they are cut. Each buffer
@@ -50,10 +50,10 @@ defmodule Membrane.Scissors do
 
   @doc false
   @spec always_pass_filter(Buffer.t(), (any -> boolean)) :: true
-  def always_pass_filter(_buffer, _caps), do: true
+  def always_pass_filter(_buffer, _accepted_format), do: true
 
   @impl true
-  def handle_init(opts) do
+  def handle_init(_context, opts) do
     %__MODULE__{intervals: intervals} = opts
     {next_intervals, intervals} = StreamSplit.take_and_drop(intervals, 2)
 
@@ -67,29 +67,30 @@ defmodule Membrane.Scissors do
         next_intervals: next_intervals
       })
 
-    {:ok, state}
+    {[], state}
   end
 
   @impl true
   def handle_demand(:output, size, :buffers, _ctx, state) do
-    {{:ok, demand: {:input, size}}, state}
+    {[demand: {:input, size}], state}
   end
 
   @impl true
   def handle_process(:input, buffer, ctx, state) do
     use Ratio
-    %{caps: caps} = ctx.pads.input
+
+    %{stream_format: stream_format} = ctx.pads.input
 
     {forward?, state} =
-      if state.filter.(buffer, caps) do
+      if state.filter.(buffer, stream_format) do
         forward?(state)
       else
         {false, state}
       end
 
     actions = if forward?, do: [buffer: {:output, buffer}], else: [redemand: :output]
-    state = Map.update!(state, :time, &(&1 + state.buffer_duration.(buffer, caps)))
-    {{:ok, actions}, state}
+    state = Map.update!(state, :time, &(&1 + state.buffer_duration.(buffer, stream_format)))
+    {actions, state}
   end
 
   defp forward?(state) do

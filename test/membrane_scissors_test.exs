@@ -26,30 +26,27 @@ defmodule Membrane.ScissorsTest do
   end
 
   defp integration_test(in_payloads, out_payloads, intervals, duration, filter, unit) do
-    import Membrane.ParentSpec
+    import Membrane.ChildrenSpec
     import Membrane.Testing.Assertions
     alias Membrane.Testing
 
-    elements = [
-      source: %Testing.Source{
-        output: in_payloads
-      },
-      scissors: %Scissors{
-        buffer_duration: fn _buffer, _caps -> duration end,
-        intervals: intervals,
-        interval_duration_unit: unit,
-        filter: filter
-      },
-      sink: Testing.Sink
+    source = %Testing.Source{
+      output: in_payloads
+    }
+
+    scissors = %Scissors{
+      buffer_duration: fn _buffer, _caps -> duration end,
+      intervals: intervals,
+      interval_duration_unit: unit,
+      filter: filter
+    }
+
+    structure = [
+      child(:source, source) |> child(:scissors, scissors) |> child(:sink, Testing.Sink)
     ]
 
-    links = [link(:source) |> to(:scissors) |> to(:sink)]
-
-    {:ok, pipeline} =
-      Testing.Pipeline.start_link(
-        children: elements,
-        links: links
-      )
+    {:ok, _pipeline_supervisor, pipeline} =
+      Testing.Pipeline.start_link_supervised(structure: structure)
 
     Enum.each(out_payloads, fn expected_payload ->
       assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: payload})

@@ -64,7 +64,7 @@ defmodule Membrane.Scissors.Plugin.MixProject do
 
   defp deps do
     [
-      {:membrane_core, "~> 0.10.2"},
+      {:membrane_core, "~> 0.11.0"},
       {:stream_split, "~> 0.1.3"},
       {:ex_doc, "~> 0.21", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false},
