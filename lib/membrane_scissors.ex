@@ -7,8 +7,8 @@ defmodule Membrane.Scissors do
   alias Membrane.Buffer
   alias Membrane.Time
 
-  def_input_pad :input, accepted_format: _any, demand_unit: :buffers
-  def_output_pad :output, accepted_format: _any
+  def_input_pad :input, accepted_format: _any, demand_unit: :buffers, flow_control: :manual
+  def_output_pad :output, accepted_format: _any, flow_control: :manual
 
   def_options intervals: [
                 type: :list,
@@ -76,8 +76,8 @@ defmodule Membrane.Scissors do
   end
 
   @impl true
-  def handle_process(:input, buffer, ctx, state) do
-    use Ratio
+  def handle_buffer(:input, buffer, ctx, state) do
+    use Numbers, overload_operators: true
 
     %{stream_format: stream_format} = ctx.pads.input
 
@@ -129,7 +129,7 @@ defmodule Membrane.Scissors do
   defp waiting_for_interval_start?(_next_intervals, _time), do: false
 
   defp within_current_interval?([{from, interval_duration} | _], time, _buffers_count, :time) do
-    use Ratio
+    use Numbers, overload_operators: true
     Ratio.lt?(time, from + interval_duration)
   end
 

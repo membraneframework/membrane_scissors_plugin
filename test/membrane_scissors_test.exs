@@ -41,12 +41,12 @@ defmodule Membrane.ScissorsTest do
       filter: filter
     }
 
-    structure = [
+    spec = [
       child(:source, source) |> child(:scissors, scissors) |> child(:sink, Testing.Sink)
     ]
 
     {:ok, _pipeline_supervisor, pipeline} =
-      Testing.Pipeline.start_link_supervised(structure: structure)
+      Testing.Pipeline.start_link_supervised(spec: spec)
 
     Enum.each(out_payloads, fn expected_payload ->
       assert_sink_buffer(pipeline, :sink, %Membrane.Buffer{payload: payload})
@@ -55,5 +55,7 @@ defmodule Membrane.ScissorsTest do
 
     assert_end_of_stream(pipeline, :sink)
     refute_sink_buffer(pipeline, :sink, _, 0)
+
+    Testing.Pipeline.terminate(pipeline)
   end
 end
