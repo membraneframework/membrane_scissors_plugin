@@ -6,6 +6,7 @@ defmodule Membrane.Scissors.Plugin.MixProject do
 
   def project do
     [
+      homepage_url: "https://membrane.stream",
       app: :membrane_scissors_plugin,
       version: @version,
       elixir: "~> 1.7",
