@@ -122,18 +122,32 @@ defmodule Membrane.Scissors do
     end
   end
 
-  defp time_for_next_interval?([_interval0, {from, _size} | _], time), do: Ratio.gte?(time, from)
+  defp time_for_next_interval?([_interval0, {from, _size} | _next_intervals], time),
+    do: Ratio.gte?(time, from)
+
   defp time_for_next_interval?(_next_intervals, _time), do: false
 
-  defp waiting_for_interval_start?([{from, _size} | _], time), do: Ratio.lt?(time, from)
+  defp waiting_for_interval_start?([{from, _size} | _next_intervals], time),
+    do: Ratio.lt?(time, from)
+
   defp waiting_for_interval_start?(_next_intervals, _time), do: false
 
-  defp within_current_interval?([{from, interval_duration} | _], time, _buffers_count, :time) do
+  defp within_current_interval?(
+         [{from, interval_duration} | _next_intervals],
+         time,
+         _buffers_count,
+         :time
+       ) do
     use Numbers, overload_operators: true
     Ratio.lt?(time, from + interval_duration)
   end
 
-  defp within_current_interval?([{_from, interval_size} | _], _time, buffers_count, :buffers) do
+  defp within_current_interval?(
+         [{_from, interval_size} | _next_intervals],
+         _time,
+         buffers_count,
+         :buffers
+       ) do
     buffers_count < interval_size
   end
 
