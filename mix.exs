@@ -69,7 +69,7 @@ defmodule Membrane.Scissors.Plugin.MixProject do
     [
       {:membrane_core, "~> 1.0"},
       {:stream_split, "~> 0.1.3"},
-      {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false},
+      {:ex_doc, ">= 0.40.0", only: [:dev, :test], runtime: false},
       {:dialyxir, ">= 0.0.0", only: [:dev, :test], runtime: false},
       {:credo, ">= 0.0.0", only: :dev, runtime: false}
     ]
